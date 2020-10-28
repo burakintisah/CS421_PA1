@@ -14,8 +14,8 @@ public class TaxonomySearcher {
     private static Socket clientSocket;
     private static DataOutputStream out;
     private static DataInputStream in;
-    private static String response;
-    private static String flag;
+    private static String statusText;
+    private static String command;
 
     private static final Charset ENCODING = StandardCharsets.US_ASCII;
     private static final String USERNAME = "bilkentstu";
@@ -45,8 +45,70 @@ public class TaxonomySearcher {
         }
         catch (IOException e)
         {
-            System.out.println("Error while sending command to server.\n" + e);
+            System.out.println("Error while sending command to server." + e);
             return false;
+        }
+        return true;
+    }
+
+    private static boolean responseHandler () {
+
+        int size;
+        byte [] resultByte = new byte[256];
+
+        String response;
+
+        try {
+
+            size = in.read(resultByte);
+
+            if(size == -1){
+                System.out.println("Server returned invalid response.");
+                return false;
+            }
+
+            response = new String(resultByte, ENCODING);
+
+            if(response.startsWith("OK")){
+                System.out.print(response);
+                statusText = (response.split("OK")[1]).split(POSTFIX)[0].trim();
+                return true;
+            }
+            else{
+                System.out.println(response);
+                statusText = (response.split("INVALID")[1]).split(POSTFIX)[0].trim();
+                return false;
+            }
+
+        }
+        catch (IOException e) {
+            System.out.println("Error while handling response." + e);
+            return false;
+        }
+    }
+
+    private static boolean authentication () {
+        // Sends the username for authentication
+        command = "USER " + USERNAME + POSTFIX;
+        System.out.println("Sending Username: bilkentstu");
+        sendCommand(command);
+
+        if (!responseHandler()){
+            // if the username is wrong.
+            System.out.println("EXIT: Username is invalid.");
+            return false;
+        }
+        else{
+            //Sends the password for authentication
+            command = "PASS " + PASSWORD + POSTFIX ;
+            System.out.println("Sending Password: cs421f2020");
+            sendCommand(command);
+
+            // If the command is wrong
+            if (!responseHandler()){
+                System.out.println("EXIT: Password is invalid.");
+                return false;
+            }
         }
         return true;
     }
@@ -57,19 +119,18 @@ public class TaxonomySearcher {
         int port = Integer.parseInt(args[1]);
         startConnection(args[0], port);
 
-        // Sends the username for authentication
-        String command = "USER " + USERNAME + POSTFIX;
-        sendCommand(command);
+        if ( authentication() ) {
+
+            System.out.println("Sending: OBJ");
+            command = "OBJ" + POSTFIX;
+            sendCommand(command);
+            responseHandler();
+            System.out.println(statusText);
+
+        }
 
 
 
-        System.out.println("FROM SERVER: " + response );
-
-        //Sends the password for authentication
-        command = "PASS " + PASSWORD + POSTFIX ;
-        sendCommand(command);
-
-        System.out.println("FROM SERVER: " + response );
 
 
         stopConnection();
