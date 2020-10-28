@@ -20,7 +20,7 @@ public class TaxonomySearcher {
     private static final Charset ENCODING = StandardCharsets.US_ASCII;
     private static final String USERNAME = "bilkentstu";
     private static final String PASSWORD = "cs421f2020";
-    private static final String POSTFIX = "\r\n";
+    private static final String END = "\r\n";
 
     private static void startConnection(String ip, int port) throws IOException {
         //intiliazing Socket
@@ -33,7 +33,7 @@ public class TaxonomySearcher {
 
     private static void stopConnection() throws IOException {
         // closing socket and buffers
-        String command = "EXIT " + USERNAME + POSTFIX;
+        String command = "EXIT " + USERNAME + END;
         sendCommand(command);
     }
 
@@ -45,7 +45,7 @@ public class TaxonomySearcher {
         }
         catch (IOException e)
         {
-            System.out.println("Error while sending command to server." + e);
+            System.out.println("Sending command is unsuccessful" + e);
             return false;
         }
         return true;
@@ -54,7 +54,7 @@ public class TaxonomySearcher {
     private static boolean responseHandler () {
 
         int size;
-        byte [] resultByte = new byte[256];
+        byte [] resultByte = new byte[128];
 
         String response;
 
@@ -63,7 +63,7 @@ public class TaxonomySearcher {
             size = in.read(resultByte);
 
             if(size == -1){
-                System.out.println("Server returned invalid response.");
+                System.out.println("Server returned unsuccessful response.");
                 return false;
             }
 
@@ -71,12 +71,49 @@ public class TaxonomySearcher {
 
             if(response.startsWith("OK")){
                 System.out.print(response);
-                statusText = (response.split("OK")[1]).split(POSTFIX)[0].trim();
+                statusText = (response.split("OK")[1]).split(END)[0].trim();
                 return true;
             }
             else{
                 System.out.println(response);
-                statusText = (response.split("INVALID")[1]).split(POSTFIX)[0].trim();
+                statusText = (response.split("INVALID")[1]).split(END)[0].trim();
+                return false;
+            }
+
+        }
+        catch (IOException e) {
+            System.out.println("Error while handling response." + e);
+            return false;
+        }
+    }
+
+    private static boolean responseGet () {
+
+        int size;
+        byte [] resultByte = new byte[7];
+
+        String statusCodeStr,imageSizeStr;
+
+
+        try {
+
+            size = in.read(resultByte);
+
+            if(size == -1){
+                System.out.println("Invalid response from server.");
+                return false;
+            }
+
+            statusCodeStr = new String(Arrays.copyOfRange(resultByte,0,4),ENCODING);
+            imageSizeStr =  new String(Arrays.copyOfRange(resultByte,4,7),ENCODING);
+            System.out.println("Image " + statusCodeStr + "  " + imageSizeStr);
+
+            if(statusCodeStr.startsWith("ISND")){
+                System.out.print("ISND " + statusCodeStr);
+                return true;
+            }
+            else{
+                System.out.println("Download from the server is unsuccessful");
                 return false;
             }
 
@@ -89,7 +126,7 @@ public class TaxonomySearcher {
 
     private static boolean authentication () {
         // Sends the username for authentication
-        command = "USER " + USERNAME + POSTFIX;
+        command = "USER " + USERNAME + END;
         System.out.println("Sending Username: bilkentstu");
         sendCommand(command);
 
@@ -100,7 +137,7 @@ public class TaxonomySearcher {
         }
         else{
             //Sends the password for authentication
-            command = "PASS " + PASSWORD + POSTFIX ;
+            command = "PASS " + PASSWORD + END ;
             System.out.println("Sending Password: cs421f2020");
             sendCommand(command);
 
@@ -122,10 +159,29 @@ public class TaxonomySearcher {
         if ( authentication() ) {
 
             System.out.println("Sending: OBJ");
-            command = "OBJ" + POSTFIX;
+            command = "OBJ" + END;
             sendCommand(command);
             responseHandler();
-            System.out.println(statusText);
+            String [] targetFiles = statusText.split(" ");
+
+
+            command = "CWDR " + "plant" + END;
+            sendCommand(command);
+            command = "CWDR " + "tree" + END;
+            sendCommand(command);
+            command = "CWDR " + "fruit" + END;
+            sendCommand(command);
+            command = "CWDR " + "apple" + END;
+            sendCommand(command);
+            command = "GET " + "apple.jpg" + END;
+            sendCommand(command);
+            responseGet();
+
+
+
+
+
+
 
         }
 
