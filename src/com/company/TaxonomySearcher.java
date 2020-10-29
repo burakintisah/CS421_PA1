@@ -92,7 +92,7 @@ public class TaxonomySearcher {
         }
     }
 
-    private static boolean responseGet () {
+    private static boolean responseGet (String filename) {
 
         int size;
         byte [] resultByte = new byte[16];
@@ -136,7 +136,7 @@ public class TaxonomySearcher {
                 }
 
                 BufferedImage image = ImageIO.read(new ByteArrayInputStream(imageArr));
-                ImageIO.write(image, "jpg", new File("test.jpg"));
+                ImageIO.write(image, "jpg", new File(filename));
 
                 return true;
             }
@@ -176,7 +176,7 @@ public class TaxonomySearcher {
 
                 command = "GET" + " " + dir + END ;
                 sendCommand(command);
-                responseGet();
+                responseGet(dir);
 
             }
         }
