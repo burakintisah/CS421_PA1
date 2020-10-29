@@ -1,5 +1,4 @@
 package com.company;
-
 import javax.crypto.EncryptedPrivateKeyInfo;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -74,13 +73,15 @@ public class TaxonomySearcher {
             response = new String(resultByte, ENCODING);
 
             if(response.startsWith("OK")){
-                System.out.print(response);
+                //System.out.print(response);
                 statusText = (response.split("OK")[1]).split(END)[0].trim();
+                System.out.println("OK");
                 return true;
             }
             else{
-                System.out.println(response);
+                //System.out.println(response);
                 statusText = (response.split("INVALID")[1]).split(END)[0].trim();
+                System.out.println("INVALID");
                 return false;
             }
 
@@ -110,7 +111,7 @@ public class TaxonomySearcher {
 
             // controling status code
             if(statusCodeStr.startsWith("ISND")){
-                System.out.print("Returned Status Code: " + statusCodeStr);
+                System.out.println("Returned Status Code: " + statusCodeStr);
 
 
                 // Getting the image size if response is correct
@@ -122,7 +123,7 @@ public class TaxonomySearcher {
                 ByteBuffer buff = ByteBuffer.wrap(resultByte);
                 buff.order(ByteOrder.BIG_ENDIAN);
                 imageSize = buff.getInt();
-                
+
 
 
                 // Getting the image data to image array
@@ -240,32 +241,8 @@ public class TaxonomySearcher {
             String [] targetFiles = statusText.split(" ");
             traverse(targetFiles);
 
-/*            command = "CWDR " + "plant" + END;
-            sendCommand(command);
-            responseHandler();
-
-            command = "CWDR " + "tree" + END;
-            sendCommand(command);
-            responseHandler();
-
-            command = "CWDR " + "fruit" + END;
-            sendCommand(command);
-            responseHandler();
-
-            command = "CWDR " + "cherry" + END;
-            sendCommand(command);
-            responseHandler();
-
-            System.out.println("\nAFTER GET ");
-            command = "GET " + "cherry.jpg" + END ;
-            sendCommand(command);
-            responseGet();*/
-
-
 
         }
-
-
 
 
 
