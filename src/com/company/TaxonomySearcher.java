@@ -16,7 +16,6 @@ public class TaxonomySearcher {
     private static Socket clientSocket;
     private static DataOutputStream out;
     private static BufferedInputStream in;
-    private static InputStream imageStream;
     private static String statusText;
     private static String command;
 
@@ -32,7 +31,6 @@ public class TaxonomySearcher {
         // intiliazing Buffers
         out = new DataOutputStream(clientSocket.getOutputStream());
         in = new BufferedInputStream(clientSocket.getInputStream());
-        imageStream = clientSocket.getInputStream();
     }
 
     private static void stopConnection() throws IOException {
@@ -96,9 +94,9 @@ public class TaxonomySearcher {
 
         int size;
         byte [] resultByte = new byte[16];
-        byte [] imageArr;
+
         String statusCodeStr;
-        int imageSize;
+        long imageSize;
 
         try {
 
@@ -109,13 +107,10 @@ public class TaxonomySearcher {
             }
             statusCodeStr = new String(resultByte,0,4, ENCODING);
 
-            // controling status code
             if(statusCodeStr.startsWith("ISND")){
                 System.out.print("Returned Status Code: " + statusCodeStr);
 
-
-                // Getting the image size if response is correct
-                size = in.read(resultByte, 0,3);
+                size = in.read(resultByte, 4,3);
                 if(size == -1){
                     System.out.println("End of the file reached. Invalid response (Image Size).");
                     return false;
@@ -124,19 +119,6 @@ public class TaxonomySearcher {
                 buff.order(ByteOrder.BIG_ENDIAN);
                 imageSize = buff.getInt();
                 System.out.println("\nSize: " + imageSize);
-
-
-                // Getting the image data to image array
-                imageArr = new byte[imageSize];
-                size = in.read(imageArr,0,imageSize);
-
-                if(size == -1){
-                    System.out.println("End of the file reached. Invalid response (Image Size).");
-                    return false;
-                }
-
-                BufferedImage image = ImageIO.read(new ByteArrayInputStream(imageArr));
-                ImageIO.write(image, "jpg", new File("test.jpg"));
 
                 return true;
             }
@@ -151,6 +133,53 @@ public class TaxonomySearcher {
             return false;
         }
     }
+
+    private static void traverse(String[] targetFiles_arr){
+        List<String> directories = new ArrayList<String>();
+        List<String> targetFiles = Arrays.asList(targetFiles_arr);
+        command = "NLST" + END;
+        sendCommand(command);
+        responseHandler();
+        if ( statusText.equals("")) return;
+
+        String[] directories_arr = statusText.split(" ");
+        directories = Arrays.asList(directories_arr);
+
+        boolean no_more_directories = true;
+
+        for(String dir : directories){
+
+            if(!dir.contains(".")){
+                no_more_directories = false;
+            }
+            if (targetFiles.contains(dir))
+            {
+                System.out.println("We will send to the server");
+                System.out.println("GET" + " " + dir + END);
+
+/*                command = "GET" + " " + dir + POSTFIX ;
+                sendCommand(str);
+                responseGet()
+                */
+            }
+        }
+        if (no_more_directories) return ;
+
+
+        for(String dir: directories)
+        {
+            if(!dir.contains(".")) {
+                command = "CWDR" + " " + dir + END;
+                sendCommand(command);
+                responseHandler();
+                traverse(targetFiles_arr) ;
+                command = "CDUP" + END;
+                sendCommand(command);
+                responseHandler();
+            }
+        }
+    }
+
 
     private static boolean authentication () {
         // Sends the username for authentication
@@ -191,9 +220,9 @@ public class TaxonomySearcher {
             sendCommand(command);
             responseHandler();
             String [] targetFiles = statusText.split(" ");
+            traverse(targetFiles);
 
-
-            command = "CWDR " + "plant" + END;
+/*            command = "CWDR " + "plant" + END;
             sendCommand(command);
             responseHandler();
 
@@ -212,15 +241,11 @@ public class TaxonomySearcher {
             System.out.println("\nAFTER GET ");
             command = "GET " + "cherry.jpg" + END ;
             sendCommand(command);
-            responseGet();
+            responseGet();*/
 
 
 
         }
-
-
-
-
 
         stopConnection();
     }
