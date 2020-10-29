@@ -185,7 +185,7 @@ public class TaxonomySearcher {
         for(String dir: directories)
         {
             if(!dir.contains(".")) {
-                System.out.println("Sending: CWDR" + dir);
+                System.out.println("Sending: CWDR " + dir);
                 command = "CWDR" + " " + dir + END;
                 sendCommand(command);
                 responseHandler();
