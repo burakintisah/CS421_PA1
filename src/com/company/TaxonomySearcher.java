@@ -65,7 +65,6 @@ public class TaxonomySearcher {
         try {
 
             size = in.read(resultByte);
-            System.out.println("SİZE : " + size);
 
             if(size == -1){
                 System.out.println("End of the file reached. Invalid response.");
@@ -154,6 +153,7 @@ public class TaxonomySearcher {
     private static void traverse(String[] targetFiles_arr){
         List<String> directories = new ArrayList<String>();
         List<String> targetFiles = Arrays.asList(targetFiles_arr);
+        System.out.println("Sending: NLST");
         command = "NLST" + END;
         sendCommand(command);
         responseHandler();
@@ -171,9 +171,8 @@ public class TaxonomySearcher {
             }
             if (targetFiles.contains(dir))
             {
-                System.out.println("We will send to the server");
-                System.out.println("GET" + " " + dir + END);
 
+                System.out.println("Sending: GET " + dir);
                 command = "GET" + " " + dir + END ;
                 sendCommand(command);
                 responseGet(dir);
@@ -186,10 +185,12 @@ public class TaxonomySearcher {
         for(String dir: directories)
         {
             if(!dir.contains(".")) {
+                System.out.println("Sending: CWDR" + dir);
                 command = "CWDR" + " " + dir + END;
                 sendCommand(command);
                 responseHandler();
                 traverse(targetFiles_arr) ;
+                System.out.println("Sending: CDUP");
                 command = "CDUP" + END;
                 sendCommand(command);
                 responseHandler();
