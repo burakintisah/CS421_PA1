@@ -122,7 +122,7 @@ public class TaxonomySearcher {
                 ByteBuffer buff = ByteBuffer.wrap(resultByte);
                 buff.order(ByteOrder.BIG_ENDIAN);
                 imageSize = buff.getInt();
-                System.out.println("\nSize: " + imageSize);
+                
 
 
                 // Getting the image data to image array
