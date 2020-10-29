@@ -16,6 +16,7 @@ public class TaxonomySearcher {
     private static Socket clientSocket;
     private static DataOutputStream out;
     private static BufferedInputStream in;
+    private static InputStream imageStream;
     private static String statusText;
     private static String command;
 
@@ -31,6 +32,7 @@ public class TaxonomySearcher {
         // intiliazing Buffers
         out = new DataOutputStream(clientSocket.getOutputStream());
         in = new BufferedInputStream(clientSocket.getInputStream());
+        imageStream = clientSocket.getInputStream();
     }
 
     private static void stopConnection() throws IOException {
@@ -94,9 +96,9 @@ public class TaxonomySearcher {
 
         int size;
         byte [] resultByte = new byte[16];
-
+        byte [] imageArr;
         String statusCodeStr;
-        long imageSize;
+        int imageSize;
 
         try {
 
@@ -107,10 +109,13 @@ public class TaxonomySearcher {
             }
             statusCodeStr = new String(resultByte,0,4, ENCODING);
 
+            // controling status code
             if(statusCodeStr.startsWith("ISND")){
                 System.out.print("Returned Status Code: " + statusCodeStr);
 
-                size = in.read(resultByte, 4,3);
+
+                // Getting the image size if response is correct
+                size = in.read(resultByte, 0,3);
                 if(size == -1){
                     System.out.println("End of the file reached. Invalid response (Image Size).");
                     return false;
@@ -119,6 +124,19 @@ public class TaxonomySearcher {
                 buff.order(ByteOrder.BIG_ENDIAN);
                 imageSize = buff.getInt();
                 System.out.println("\nSize: " + imageSize);
+
+
+                // Getting the image data to image array
+                imageArr = new byte[imageSize];
+                size = in.read(imageArr,0,imageSize);
+
+                if(size == -1){
+                    System.out.println("End of the file reached. Invalid response (Image Size).");
+                    return false;
+                }
+
+                BufferedImage image = ImageIO.read(new ByteArrayInputStream(imageArr));
+                ImageIO.write(image, "jpg", new File("test.jpg"));
 
                 return true;
             }
