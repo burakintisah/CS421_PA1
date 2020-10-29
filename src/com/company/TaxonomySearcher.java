@@ -1,6 +1,5 @@
 package com.company;
 
-import javax.crypto.EncryptedPrivateKeyInfo;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.nio.ByteBuffer;
@@ -16,7 +15,6 @@ public class TaxonomySearcher {
     private static Socket clientSocket;
     private static DataOutputStream out;
     private static BufferedInputStream in;
-    private static InputStream imageStream;
     private static String statusText;
     private static String command;
 
@@ -32,7 +30,6 @@ public class TaxonomySearcher {
         // intiliazing Buffers
         out = new DataOutputStream(clientSocket.getOutputStream());
         in = new BufferedInputStream(clientSocket.getInputStream());
-        imageStream = clientSocket.getInputStream();
     }
 
     private static void stopConnection() throws IOException {
