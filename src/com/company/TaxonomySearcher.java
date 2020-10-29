@@ -1,5 +1,6 @@
 package com.company;
 
+import javax.crypto.EncryptedPrivateKeyInfo;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.nio.ByteBuffer;
@@ -13,7 +14,7 @@ public class TaxonomySearcher {
 
     private static Socket clientSocket;
     private static DataOutputStream out;
-    private static DataInputStream in;
+    private static BufferedInputStream in;
     private static String statusText;
     private static String command;
 
@@ -28,7 +29,7 @@ public class TaxonomySearcher {
 
         // intiliazing Buffers
         out = new DataOutputStream(clientSocket.getOutputStream());
-        in = new DataInputStream(clientSocket.getInputStream());
+        in = new BufferedInputStream(clientSocket.getInputStream());
     }
 
     private static void stopConnection() throws IOException {
@@ -54,16 +55,17 @@ public class TaxonomySearcher {
     private static boolean responseHandler () {
 
         int size;
-        byte [] resultByte = new byte[128];
+        byte [] resultByte = new byte[256];
 
         String response;
 
         try {
 
             size = in.read(resultByte);
+            System.out.println("SİZE : " + size);
 
             if(size == -1){
-                System.out.println("Server returned unsuccessful response.");
+                System.out.println("End of the file reached. Invalid response.");
                 return false;
             }
 
@@ -90,26 +92,24 @@ public class TaxonomySearcher {
     private static boolean responseGet () {
 
         int size;
-        byte [] resultByte = new byte[7];
+        byte [] resultByte = new byte[16];
 
-        String statusCodeStr,imageSizeStr;
+        String statusCodeStr;
 
 
         try {
 
-            size = in.read(resultByte);
+            size = in.read(resultByte, 0, 4);
+            statusCodeStr = new String(resultByte,0,4, ENCODING);
 
             if(size == -1){
-                System.out.println("Invalid response from server.");
+                System.out.println("End of the file reached. Invalid response.");
                 return false;
             }
 
-            statusCodeStr = new String(Arrays.copyOfRange(resultByte,0,4),ENCODING);
-            imageSizeStr =  new String(Arrays.copyOfRange(resultByte,4,7),ENCODING);
-            System.out.println("Image " + statusCodeStr + "  " + imageSizeStr);
 
             if(statusCodeStr.startsWith("ISND")){
-                System.out.print("ISND " + statusCodeStr);
+                System.out.print("Returned Status Code: " + statusCodeStr);
                 return true;
             }
             else{
@@ -167,19 +167,29 @@ public class TaxonomySearcher {
 
             command = "CWDR " + "plant" + END;
             sendCommand(command);
+            responseHandler();
+
             command = "CWDR " + "tree" + END;
             sendCommand(command);
+            responseHandler();
+
             command = "CWDR " + "fruit" + END;
             sendCommand(command);
-            command = "CWDR " + "apple" + END;
+            responseHandler();
+
+            command = "CWDR " + "orange" + END;
             sendCommand(command);
-            command = "GET " + "apple.jpg" + END;
+            responseHandler();
+
+            System.out.println("\nAFTER NLST ");
+            command = "NLST" + END;
+            sendCommand(command);
+            responseHandler();
+
+            System.out.println("\nAFTER GET ");
+            command = "GET " + "orange.jpg" + END ;
             sendCommand(command);
             responseGet();
-
-
-
-
 
 
 
