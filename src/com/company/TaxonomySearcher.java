@@ -1,4 +1,5 @@
 package com.company;
+
 import javax.crypto.EncryptedPrivateKeyInfo;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
