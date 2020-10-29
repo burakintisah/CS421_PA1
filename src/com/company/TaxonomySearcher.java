@@ -6,6 +6,7 @@ import java.awt.image.BufferedImage;
 import java.nio.ByteBuffer;
 import java.io.*;
 import java.net.*;
+import java.nio.ByteOrder;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -95,21 +96,30 @@ public class TaxonomySearcher {
         byte [] resultByte = new byte[16];
 
         String statusCodeStr;
-
+        long imageSize;
 
         try {
 
             size = in.read(resultByte, 0, 4);
-            statusCodeStr = new String(resultByte,0,4, ENCODING);
-
             if(size == -1){
-                System.out.println("End of the file reached. Invalid response.");
+                System.out.println("End of the file reached. Invalid response (Status Code).");
                 return false;
             }
-
+            statusCodeStr = new String(resultByte,0,4, ENCODING);
 
             if(statusCodeStr.startsWith("ISND")){
                 System.out.print("Returned Status Code: " + statusCodeStr);
+
+                size = in.read(resultByte, 4,3);
+                if(size == -1){
+                    System.out.println("End of the file reached. Invalid response (Image Size).");
+                    return false;
+                }
+                ByteBuffer buff = ByteBuffer.wrap(resultByte);
+                buff.order(ByteOrder.BIG_ENDIAN);
+                imageSize = buff.getInt();
+                System.out.println("\nSize: " + imageSize);
+
                 return true;
             }
             else{
@@ -177,17 +187,12 @@ public class TaxonomySearcher {
             sendCommand(command);
             responseHandler();
 
-            command = "CWDR " + "orange" + END;
-            sendCommand(command);
-            responseHandler();
-
-            System.out.println("\nAFTER NLST ");
-            command = "NLST" + END;
+            command = "CWDR " + "cherry" + END;
             sendCommand(command);
             responseHandler();
 
             System.out.println("\nAFTER GET ");
-            command = "GET " + "orange.jpg" + END ;
+            command = "GET " + "cherry.jpg" + END ;
             sendCommand(command);
             responseGet();
 
